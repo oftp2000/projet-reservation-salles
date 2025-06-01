@@ -1,11 +1,28 @@
+const axios = require('../api/axiosClient');
 const Reservation = require('../models/reservation');
 
-// POST /reservation
 exports.createReservation = async (req, res) => {
   try {
+    const { email, salleId } = req.body;
+    const token = req.headers.authorization;
+    const userResponse = await axios.get(`http://localhost:4000/user/${email}`, {
+  headers: { Authorization: token }
+});
+    if (!userResponse.data) {
+      return res.status(404).json({ message: "Client non trouvé" });
+    }
+    const salleResponse = await axios.get(`http://localhost:4002/salle/${salleId}`, {
+  headers: { Authorization: token }
+});
+    if (!salleResponse.data) {
+      return res.status(404).json({ message: "Salle non trouvée" });
+    }
     const reservation = await Reservation.create(req.body);
     res.status(200).json(reservation);
   } catch (err) {
+    if (err.response && err.response.status === 404) {
+      return res.status(404).json({ message: err.response.data.message });
+    }
     res.status(500).json({ message: err.message });
   }
 };

@@ -52,3 +52,51 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
+
+// GET /user/:email
+exports.getUserByEmail = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email }).select('-password');
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error });
+  }
+};
+
+// PUT /user/:email
+exports.updateUser = async (req, res) => {
+  try {
+    const updatedData = req.body;
+
+    if (updatedData.password) {
+      updatedData.password = await bcrypt.hash(updatedData.password, 10);
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email: req.params.email },
+      updatedData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    res.status(200).json({ message: 'Utilisateur mis à jour', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error });
+  }
+};
+
+// DELETE /user/:email
+exports.deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await User.findOneAndDelete({ email: req.params.email });
+    if (!deletedUser) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error });
+  }
+};
+

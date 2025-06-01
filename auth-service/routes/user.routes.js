@@ -11,5 +11,9 @@ router.get('/me', verifyToken, (req, res) => {
     user: req.user
   });
 });
+router.get('/:email', verifyToken, userController.getUserByEmail);
+router.put('/:email', verifyToken, userController.updateUser);
+router.delete('/:email', verifyToken, userController.deleteUser);
+
 
 module.exports = router;
